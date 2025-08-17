@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNIC OCR - Smart Text Extraction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-camera-retro"></i>
+                <h1>CNIC OCR</h1>
+            </div>
+            <p class="subtitle">Powered by Google Gemini AI - Extract text from any image with precision</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Upload Section -->
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-card">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h2>Upload Your Image</h2>
+                    <p>Drag and drop an image or click to select</p>
+                    
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="imageInput" name="image" accept="image/*" required>
+                        <label for="imageInput" class="upload-btn">
+                            <i class="fas fa-images"></i>
+                            Choose Image
+                        </label>
+                    </form>
+                    
+                    <div class="supported-formats">
+                        <small>Supported: JPG, PNG, GIF, BMP, TIFF (Max 16MB)</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-card">
+                    <h3><i class="fas fa-eye"></i> Image Preview</h3>
+                    <div class="image-preview">
+                        <img id="previewImage" src="" alt="Preview">
+                        <div class="preview-actions">
+                            <button type="button" class="btn btn-primary" id="extractBtn">
+                                <i class="fas fa-magic"></i>
+                                Extract Text with Gemini AI
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="changeImageBtn">
+                                <i class="fas fa-redo"></i>
+                                Change Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Section -->
+            <div class="loading-section" id="loadingSection" style="display: none;">
+                <div class="loading-card">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                    <h3>Processing with Gemini AI...</h3>
+                    <p>Analyzing your image and extracting text with high accuracy</p>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <div class="results-card">
+                    <h3><i class="fas fa-list-alt"></i> Extracted Text</h3>
+                    
+                    <!-- Text Stats -->
+                    <div class="text-stats">
+                        <div class="stat">
+                            <i class="fas fa-font"></i>
+                            <span id="charCount">0</span>
+                            <small>Characters</small>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-align-left"></i>
+                            <span id="wordCount">0</span>
+                            <small>Words</small>
+                        </div>
+                        <div class="stat">
+                            <i class="fas fa-list"></i>
+                            <span id="lineCount">0</span>
+                            <small>Lines</small>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Text -->
+                    <div class="extracted-text">
+                        <div class="text-header">
+                            <h4>Raw Extracted Text:</h4>
+                            <button class="btn btn-small" id="copyBtn">
+                                <i class="fas fa-copy"></i>
+                                Copy Text
+                            </button>
+                        </div>
+                        <div class="text-content" id="extractedText">
+                            <!-- Text will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Structured Data (for CNIC) -->
+                    <div class="structured-data" id="structuredData" style="display: none;">
+                        <h4><i class="fas fa-table"></i> Structured Information:</h4>
+                        <div class="data-grid" id="dataGrid">
+                            <!-- Structured data will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="result-actions">
+                        <button class="btn btn-success" id="downloadBtn">
+                            <i class="fas fa-download"></i>
+                            Download Results
+                        </button>
+                        <button class="btn btn-primary" id="newImageBtn">
+                            <i class="fas fa-plus"></i>
+                            Process New Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Processing Failed</h3>
+                    <p id="errorMessage">An error occurred while processing your image.</p>
+                    <button class="btn btn-primary" id="retryBtn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2025 CNIC OCR. Powered by Google Gemini AI for accurate text extraction.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
