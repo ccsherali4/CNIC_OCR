@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CNIC OCR - Smart Text Extraction</title>
+    <title>Pakistani CNIC OCR - Smart Document Extraction</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cnic_styles.css') }}">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="logo">
-                <i class="fas fa-camera-retro"></i>
-                <h1>CNIC OCR</h1>
+                <i class="fas fa-id-card"></i>
+                <h1>Pakistani CNIC OCR</h1>
             </div>
-            <p class="subtitle">Powered by Google Gemini AI - Extract text from any image with precision</p>
+            <p class="subtitle">Powered by Google Vision AI - Extract information from Pakistani National Identity Cards</p>
         </header>
 
         <main class="main-content">
@@ -25,19 +26,24 @@
                     <div class="upload-icon">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
-                    <h2>Upload Your Image</h2>
-                    <p>Drag and drop an image or click to select</p>
+                    <h2>Upload CNIC Image</h2>
+                    <p>Drag and drop your Pakistani CNIC image or click to select</p>
                     
                     <form id="uploadForm" enctype="multipart/form-data">
                         <input type="file" id="imageInput" name="image" accept="image/*" required>
                         <label for="imageInput" class="upload-btn">
                             <i class="fas fa-images"></i>
-                            Choose Image
+                            Choose CNIC Image
                         </label>
                     </form>
                     
                     <div class="supported-formats">
                         <small>Supported: JPG, PNG, GIF, BMP, TIFF (Max 16MB)</small>
+                    </div>
+                    
+                    <div class="sample-note">
+                        <i class="fas fa-info-circle"></i>
+                        <small>For best results, ensure the CNIC is well-lit and all text is clearly visible</small>
                     </div>
                 </div>
             </div>
@@ -45,13 +51,13 @@
             <!-- Preview Section -->
             <div class="preview-section" id="previewSection" style="display: none;">
                 <div class="preview-card">
-                    <h3><i class="fas fa-eye"></i> Image Preview</h3>
+                    <h3><i class="fas fa-eye"></i> CNIC Preview</h3>
                     <div class="image-preview">
-                        <img id="previewImage" src="" alt="Preview">
+                        <img id="previewImage" src="" alt="CNIC Preview">
                         <div class="preview-actions">
                             <button type="button" class="btn btn-primary" id="extractBtn">
                                 <i class="fas fa-magic"></i>
-                                Extract Text with Gemini AI
+                                Extract CNIC Data
                             </button>
                             <button type="button" class="btn btn-secondary" id="changeImageBtn">
                                 <i class="fas fa-redo"></i>
@@ -68,36 +74,120 @@
                     <div class="loading-spinner">
                         <div class="spinner"></div>
                     </div>
-                    <h3>Processing with Gemini AI...</h3>
-                    <p>Analyzing your image and extracting text with high accuracy</p>
+                    <h3>Processing CNIC...</h3>
+                    <p>Analyzing your CNIC image and extracting personal information with AI</p>
                 </div>
             </div>
 
             <!-- Results Section -->
             <div class="results-section" id="resultsSection" style="display: none;">
                 <div class="results-card">
-                    <h3><i class="fas fa-list-alt"></i> Extracted Text</h3>
+                    <div class="results-header">
+                        <h3><i class="fas fa-list-alt"></i> Extracted CNIC Information</h3>
+                        <div class="confidence-badge" id="confidenceBadge">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="confidenceScore">0%</span> Confidence
+                        </div>
+                    </div>
                     
-                    <!-- Text Stats -->
-                    <div class="text-stats">
-                        <div class="stat">
-                            <i class="fas fa-font"></i>
-                            <span id="charCount">0</span>
-                            <small>Characters</small>
+                    <!-- CNIC Data Grid -->
+                    <div class="cnic-data-grid">
+                        <div class="data-field">
+                            <label><i class="fas fa-hashtag"></i> Identity Number</label>
+                            <div class="field-value" id="identityNumber">-</div>
                         </div>
-                        <div class="stat">
-                            <i class="fas fa-align-left"></i>
-                            <span id="wordCount">0</span>
-                            <small>Words</small>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-user"></i> Name</label>
+                            <div class="field-value" id="name">-</div>
                         </div>
-                        <div class="stat">
-                            <i class="fas fa-list"></i>
-                            <span id="lineCount">0</span>
-                            <small>Lines</small>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-male"></i> Father's Name</label>
+                            <div class="field-value" id="fatherName">-</div>
+                        </div>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-venus-mars"></i> Gender</label>
+                            <div class="field-value" id="gender">-</div>
+                        </div>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-flag"></i> Country of Stay</label>
+                            <div class="field-value" id="countryOfStay">-</div>
+                        </div>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
+                            <div class="field-value" id="dateOfBirth">-</div>
+                        </div>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-calendar-plus"></i> Date of Issue</label>
+                            <div class="field-value" id="dateOfIssue">-</div>
+                        </div>
+                        
+                        <div class="data-field">
+                            <label><i class="fas fa-calendar-times"></i> Date of Expiry</label>
+                            <div class="field-value" id="dateOfExpiry">-</div>
                         </div>
                     </div>
 
-                    <!-- Extracted Text -->
+                    <!-- Action Buttons -->
+                    <div class="result-actions">
+                        <button type="button" class="btn btn-success" id="downloadBtn">
+                            <i class="fas fa-download"></i>
+                            Download as JSON
+                        </button>
+                        <button type="button" class="btn btn-info" id="copyBtn">
+                            <i class="fas fa-copy"></i>
+                            Copy Data
+                        </button>
+                        <button type="button" class="btn btn-primary" id="newExtractionBtn">
+                            <i class="fas fa-plus"></i>
+                            Extract Another CNIC
+                        </button>
+                    </div>
+
+                    <!-- Raw Text Section (Collapsible) -->
+                    <div class="raw-text-section">
+                        <button type="button" class="btn btn-outline" id="toggleRawTextBtn">
+                            <i class="fas fa-eye"></i>
+                            Show Raw Extracted Text
+                        </button>
+                        <div class="raw-text-content" id="rawTextContent" style="display: none;">
+                            <h4>Raw OCR Text</h4>
+                            <pre id="rawText"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div class="error-section" id="errorSection" style="display: none;">
+                <div class="error-card">
+                    <div class="error-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Processing Error</h3>
+                    <p id="errorMessage">An error occurred while processing your CNIC.</p>
+                    <button type="button" class="btn btn-primary" id="retryBtn">
+                        <i class="fas fa-redo"></i>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 CNIC OCR. Powered by Google Vision AI. Built for Pakistani Identity Document Processing.</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
                     <div class="extracted-text">
                         <div class="text-header">
                             <h4>Raw Extracted Text:</h4>
@@ -150,10 +240,10 @@
         </main>
 
         <footer class="footer">
-            <p>&copy; 2025 CNIC OCR. Powered by Google Gemini AI for accurate text extraction.</p>
+            <p>&copy; 2024 CNIC OCR. Powered by Google Vision AI. Built for Pakistani Identity Document Processing.</p>
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/cnic_app.js') }}"></script>
 </body>
 </html>

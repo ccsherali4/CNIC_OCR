@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
@@ -32,77 +32,68 @@ logger = logging.getLogger(__name__)
 vision_service = VisionService()
 
 @app.route('/', methods=['GET'])
+def index():
+    """Main web interface for CNIC OCR"""
+    return render_template('index.html')
+
+@app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
     return success_response({
         'message': 'CNIC OCR API is running',
         'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0'
+        'version': '1.0.0',
+        'status': 'healthy'
     })
 
-@app.route('/test-api', methods=['GET'])
-def test_api():
-    """Test endpoint to verify API key works by asking for world capitals"""
-    try:
-        # Test with a simple question about world capitals
-        test_question = "What are the capitals of France, Germany, and Japan?"
-        result = vision_service.test_api_connection(test_question)
-        
-        return success_response({
-            'message': 'API test successful',
-            'test_question': test_question,
-            'response': result
-        })
-    
-    except Exception as e:
-        logger.error(f"API test failed: {str(e)}")
-        return error_response(f"API test failed: {str(e)}", 500)
-
-@app.route('/ocr/extract', methods=['POST'])
-def extract_text():
-    """Extract text from uploaded image"""
-    try:
-        # Validate request
-        if 'image' not in request.files:
-            return error_response('No image file provided', 400)
-        
-        file = request.files['image']
-        if not validate_image_file(file):
-            return error_response('Invalid image file. Please upload a valid image (PNG, JPG, JPEG)', 400)
-        
-        # Process image
-        extracted_text = vision_service.extract_text_from_image(file)
-        
-        return success_response({
-            'extracted_text': extracted_text,
-            'filename': file.filename,
-            'timestamp': datetime.utcnow().isoformat()
-        })
-    
-    except Exception as e:
-        logger.error(f"Text extraction failed: {str(e)}")
-        return error_response(f"Text extraction failed: {str(e)}", 500)
-
-@app.route('/ocr/cnic', methods=['POST'])
+@app.route('/cnic_ocr', methods=['POST'])
 def extract_cnic_data():
-    """Extract structured data from CNIC image"""
+    """Extract structured data from CNIC image using Document OCR"""
     try:
         # Validate request
         if 'image' not in request.files:
-            return error_response('No image file provided', 400)
+            return error_response('No image file provided. Please upload a CNIC image.', 400)
         
         file = request.files['image']
         if not validate_image_file(file):
             return error_response('Invalid image file. Please upload a valid image (PNG, JPG, JPEG)', 400)
         
-        # Process CNIC
+        logger.info(f"Processing CNIC image: {file.filename}")
+        
+        # Process CNIC using document OCR
         cnic_data = vision_service.extract_cnic_data(file)
         
-        return success_response({
-            'cnic_data': cnic_data,
-            'filename': file.filename,
-            'timestamp': datetime.utcnow().isoformat()
-        })
+        # Calculate confidence score based on extracted fields
+        parsed_data = cnic_data.get('parsed_data', {})
+        total_fields = len([k for k in parsed_data.keys() if k != 'signature_present'])  # Exclude signature from count
+        filled_fields = sum(1 for k, v in parsed_data.items() if k != 'signature_present' and v is not None and v != '')
+        confidence_score = round((filled_fields / total_fields) * 100, 2) if total_fields > 0 else 0
+        
+        response_data = {
+            'success': True,
+            'message': 'CNIC data extracted successfully',
+            'data': {
+                'identity_number': parsed_data.get('identity_number'),
+                'name': parsed_data.get('name'),
+                'father_name': parsed_data.get('father_name'),
+                'gender': parsed_data.get('gender'),
+                'country_of_stay': parsed_data.get('country_of_stay'),
+                'date_of_birth': parsed_data.get('date_of_birth'),
+                'date_of_issue': parsed_data.get('date_of_issue'),
+                'date_of_expiry': parsed_data.get('date_of_expiry')
+            },
+            'metadata': {
+                'filename': file.filename,
+                'confidence_score': confidence_score,
+                'fields_extracted': filled_fields,
+                'total_fields': total_fields,
+                'timestamp': datetime.utcnow().isoformat(),
+                'processing_method': 'Document OCR'
+            },
+            'raw_text': cnic_data.get('raw_text', '')
+        }
+        
+        return jsonify(response_data), 200
     
     except Exception as e:
         logger.error(f"CNIC extraction failed: {str(e)}")

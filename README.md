@@ -1,4 +1,266 @@
-# CNIC OCR API
+# Pakistani CNIC OCR - Smart Document Extraction
+
+A powerful web application that uses Google Vision AI to extract information from Pakistani National Identity Cards (CNICs). This application provides both a user-friendly web interface and a RESTful API for automated document processing.
+
+## Features
+
+- **Smart CNIC Recognition**: Extracts all key information from Pakistani CNICs
+- **High Accuracy**: Powered by Google Vision AI for reliable text recognition
+- **User-Friendly Interface**: Clean, responsive web interface
+- **RESTful API**: Easy integration with other applications
+- **Multiple Format Support**: JPG, PNG, GIF, BMP, TIFF
+- **Real-time Processing**: Fast extraction with confidence scoring
+- **Data Export**: Download results as JSON or copy to clipboard
+
+## Extracted Fields
+
+The application extracts the following information from CNIC images using Document OCR:
+
+- **Identity Number** (شناختی نمبر)
+- **Name** (اسم)
+- **Father's Name** (والد کا نام)
+- **Gender** (جنس)
+- **Country of Stay**
+- **Date of Birth** (تاریخ پیدائش)
+- **Date of Issue** (تاریخ اجراء)
+- **Date of Expiry** (تاریخ ختم)
+
+## Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Google Cloud Account with Vision API enabled
+- Virtual environment (recommended)
+
+### Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd CNIC_OCR
+   ```
+
+2. **Create and activate virtual environment**
+   ```bash
+   python -m venv env
+   # On Windows
+   env\Scripts\activate
+   # On macOS/Linux
+   source env/bin/activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Set up Google Vision API**
+   - Create a Google Cloud Project
+   - Enable the Vision API
+   - Create a service account and download the JSON key file
+   - Place the key file in `credentials/service_account.json`
+
+5. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env file with your configuration
+   ```
+
+6. **Run the application**
+   ```bash
+   python app.py
+   ```
+
+The application will be available at `http://localhost:5000`
+
+## API Usage
+
+### Extract CNIC Data
+
+**Endpoint:** `POST /cnic_ocr`
+
+**Request:**
+```bash
+curl -X POST \
+  http://localhost:5000/cnic_ocr \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'image=@path/to/cnic_image.jpg'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "CNIC data extracted successfully",
+  "data": {
+    "identity_number": "12345-1234567-1",
+    "name": "Muhammad Ali",
+    "father_name": "Ahmed Ali",
+    "gender": "Male",
+    "country_of_stay": "Pakistan",
+    "date_of_birth": "01/01/1990",
+    "date_of_issue": "01/01/2010",
+    "date_of_expiry": "01/01/2030"
+  },
+  "metadata": {
+    "filename": "cnic_image.jpg",
+    "confidence_score": 87.5,
+    "fields_extracted": 7,
+    "total_fields": 8,
+    "timestamp": "2024-01-01T12:00:00.000Z",
+    "processing_method": "Document OCR"
+  },
+  "raw_text": "PAKISTAN National Identity Card..."
+}
+```
+
+### Health Check
+
+**Endpoint:** `GET /health`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "CNIC OCR API is running",
+    "timestamp": "2024-01-01T12:00:00.000Z",
+    "version": "1.0.0",
+    "status": "healthy"
+  }
+}
+```
+
+## Project Structure
+
+```
+CNIC_OCR/
+├── app.py                 # Main Flask application
+├── requirements.txt       # Python dependencies
+├── .env.example          # Environment variables template
+├── README.md             # Project documentation
+├── config/
+│   └── config.py         # Application configuration
+├── services/
+│   └── vision_service.py # Google Vision API service
+├── utils/
+│   ├── validators.py     # Input validation utilities
+│   └── response_helpers.py # API response helpers
+├── templates/
+│   └── index.html        # Web interface template
+├── static/
+│   ├── css/
+│   │   ├── style.css     # Main stylesheet
+│   │   └── cnic_styles.css # CNIC-specific styles
+│   └── js/
+│       └── cnic_app.js   # Frontend JavaScript
+└── credentials/
+    └── service_account.json # Google Cloud credentials (not in repo)
+```
+
+## Configuration
+
+### Environment Variables
+
+- `GOOGLE_APPLICATION_CREDENTIALS`: Path to Google Cloud service account JSON
+- `GEMINI_API_KEY`: Optional Gemini API key for enhanced processing
+- `FLASK_DEBUG`: Enable/disable Flask debug mode
+- `SECRET_KEY`: Flask secret key for sessions
+- `MAX_CONTENT_LENGTH`: Maximum file upload size in bytes
+
+### Google Cloud Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Vision API
+4. Create a service account:
+   - Go to IAM & Admin > Service Accounts
+   - Click "Create Service Account"
+   - Give it the "Cloud Vision API Service Agent" role
+   - Generate and download a JSON key
+5. Place the JSON key in `credentials/service_account.json`
+
+## Usage Tips
+
+### For Best Results
+
+- Ensure the CNIC image is well-lit and clear
+- Avoid shadows or glare on the card
+- Make sure all text is visible and legible
+- Use high-resolution images when possible
+- Keep the card flat and properly aligned
+
+### Common Issues
+
+- **Low confidence scores**: Try improving image quality
+- **Missing fields**: Ensure all parts of the CNIC are visible
+- **API errors**: Check your Google Cloud credentials and API quotas
+
+## API Integration Examples
+
+### Python
+```python
+import requests
+
+url = "http://localhost:5000/cnic_ocr"
+files = {"image": open("cnic_image.jpg", "rb")}
+response = requests.post(url, files=files)
+data = response.json()
+print(data["data"]["name"])
+```
+
+### JavaScript
+```javascript
+const formData = new FormData();
+formData.append('image', fileInput.files[0]);
+
+fetch('/cnic_ocr', {
+    method: 'POST',
+    body: formData
+})
+.then(response => response.json())
+.then(data => {
+    console.log('Name:', data.data.name);
+    console.log('CNIC:', data.data.identity_number);
+});
+```
+
+### cURL
+```bash
+curl -X POST \
+  http://localhost:5000/cnic_ocr \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'image=@cnic_front.jpg'
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For issues and questions:
+1. Check the existing issues on GitHub
+2. Create a new issue with detailed information
+3. Include sample images (with sensitive information removed)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## Security Note
+
+This application processes sensitive identity documents. In production:
+- Use HTTPS encryption
+- Implement proper authentication
+- Log access attempts
+- Consider data retention policies
+- Ensure compliance with privacy regulations API
 
 A Flask-based REST API for extracting text and structured data from Pakistani CNIC (Computerized National Identity Card) images using Google Cloud Vision API.
 

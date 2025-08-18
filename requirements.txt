@@ -1,5 +1,9 @@
-flask==2.3.3
-flask-cors==4.0.0
-google-cloud-vision==3.4.5
-python-dotenv==1.0.0
-Pillow==10.0.1
+Pillow>=9.0
+flask
+flask-cors
+google-cloud-vision
+python-dotenv
+google-generativeai
+opencv-python
+numpy
+Pillow
